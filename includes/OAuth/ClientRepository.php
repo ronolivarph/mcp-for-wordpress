@@ -51,18 +51,20 @@ final class ClientRepository implements ClientRepositoryInterface {
 			return true;
 		}
 
-		// Confidential clients must provide a valid secret.
-		if ( $clientSecret === null ) {
-			return false;
-		}
-
+		// If marked confidential but no secret was stored, treat as public.
+		// This handles clients registered via DCR without an explicit secret.
 		global $wpdb;
 		$table = $wpdb->prefix . 'mcpwp_clients';
 		$row   = $wpdb->get_row(
 			$wpdb->prepare( "SELECT client_secret_hash FROM `$table` WHERE client_id = %s", $clientIdentifier ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
 
-		if ( ! $row || ! $row->client_secret_hash ) {
+		if ( ! $row || empty( $row->client_secret_hash ) ) {
+			return true;
+		}
+
+		// Confidential clients with a stored secret must provide a valid one.
+		if ( $clientSecret === null ) {
 			return false;
 		}
 

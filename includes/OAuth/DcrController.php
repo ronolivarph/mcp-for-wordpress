@@ -43,6 +43,14 @@ final class DcrController {
 		$grant_types   = $body['grant_types'] ?? [ 'authorization_code' ];
 		$token_auth    = $body['token_endpoint_auth_method'] ?? 'none';
 
+		// MCP clients (Claude Desktop etc.) are public clients — they cannot
+		// securely store a client_secret. Force public unless explicitly
+		// requesting client_secret_basic or client_secret_post WITH the intent
+		// to manage a secret. For DCR, default to public (none).
+		if ( ! in_array( $token_auth, [ 'none', 'client_secret_post', 'client_secret_basic' ], true ) ) {
+			$token_auth = 'none';
+		}
+
 		// Validate redirect URIs.
 		if ( ! is_array( $redirect_uris ) || count( $redirect_uris ) === 0 ) {
 			return new WP_REST_Response(
