@@ -31,7 +31,12 @@ final class ClientRepository implements ClientRepositoryInterface {
 		$client->setIdentifier( $row->client_id );
 		$client->setName( $row->client_name );
 		$client->setRedirectUri( explode( "\n", $row->redirect_uris ) );
-		$client->setConfidential( (bool) $row->is_confidential );
+
+		// Only mark as confidential if it was registered as such AND has a secret.
+		// DCR clients without a secret must be treated as public, otherwise
+		// league/oauth2-server rejects the token request before our validateClient runs.
+		$is_confidential = ( (bool) $row->is_confidential ) && ! empty( $row->client_secret_hash );
+		$client->setConfidential( $is_confidential );
 
 		return $client;
 	}
