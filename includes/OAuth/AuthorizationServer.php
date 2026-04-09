@@ -47,12 +47,12 @@ final class AuthorizationServer {
 		);
 
 		// Auth Code grant with PKCE — 10-minute code TTL.
+		// PKCE is required by default for public clients in league/oauth2-server v9.
 		$auth_code_grant = new AuthCodeGrant(
 			$auth_code_repo,
 			$refresh_token_repo,
 			new DateInterval( 'PT10M' )
 		);
-		$auth_code_grant->requireCodeChallengeForPublicClients();
 
 		$server->enableGrantType(
 			$auth_code_grant,
