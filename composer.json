@@ -10,8 +10,7 @@
         "automattic/jetpack-autoloader": "^3.0",
         "league/oauth2-server": "^9.1",
         "nyholm/psr7": "^1.8",
-        "nyholm/psr7-server": "^1.1",
-        "wordpress/mcp-adapter": "dev-trunk"
+        "nyholm/psr7-server": "^1.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.6",

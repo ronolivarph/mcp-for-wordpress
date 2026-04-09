@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace McpForWordPress\Mcp\Abilities;
 
+use McpForWordPress\Mcp\ToolRegistry;
 use McpForWordPress\Support\Pagination;
 
 /**
@@ -12,13 +13,8 @@ use McpForWordPress\Support\Pagination;
  */
 final class SearchAbilities {
 
-	public static function register(): void {
-		add_action( 'wp_abilities_api_init', [ self::class, 'on_init' ] );
-	}
-
-	public static function on_init(): void {
-		wp_register_ability( 'mcp-for-wordpress/search.universal', [
-			'label'               => __( 'Universal Search', 'mcp-for-wordpress' ),
+	public static function register_tools( ToolRegistry $r ): void {
+		$r->register( 'mcp-for-wordpress/search.universal', [
 			'description'         => __( 'Search across posts, pages, and custom post types.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -30,20 +26,11 @@ final class SearchAbilities {
 				],
 				'required' => [ 'query' ],
 			],
-			'output_schema'       => Pagination::wrap( [
-				'type' => 'object',
-				'properties' => [
-					'id' => [ 'type' => 'integer' ], 'title' => [ 'type' => 'string' ], 'excerpt' => [ 'type' => 'string' ],
-					'type' => [ 'type' => 'string' ], 'url' => [ 'type' => 'string' ], 'date' => [ 'type' => 'string' ],
-				],
-			] ),
 			'permission_callback' => static fn(): bool => current_user_can( 'read' ),
 			'execute_callback'    => [ self::class, 'execute_universal' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/search.oembed-resolve', [
-			'label'               => __( 'Resolve oEmbed', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/search.oembed-resolve', [
 			'description'         => __( 'Resolve an oEmbed URL and return embed HTML.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -54,29 +41,19 @@ final class SearchAbilities {
 				],
 				'required' => [ 'url' ],
 			],
-			'output_schema'       => [ 'type' => 'object' ],
 			'permission_callback' => static fn(): bool => current_user_can( 'read' ),
 			'execute_callback'    => [ self::class, 'execute_oembed_resolve' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/search.fetch-url-meta', [
-			'label'               => __( 'Fetch URL Metadata', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/search.fetch-url-meta', [
 			'description'         => __( 'Fetch title and meta description from a URL.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
 				'properties' => [ 'url' => [ 'type' => 'string', 'format' => 'uri' ] ],
 				'required' => [ 'url' ],
 			],
-			'output_schema'       => [
-				'type' => 'object',
-				'properties' => [
-					'title' => [ 'type' => 'string' ], 'description' => [ 'type' => 'string' ], 'image' => [ 'type' => 'string' ],
-				],
-			],
 			'permission_callback' => static fn(): bool => current_user_can( 'read' ),
 			'execute_callback'    => [ self::class, 'execute_fetch_url_meta' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 	}
 

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace McpForWordPress\Mcp\Abilities;
 
+use McpForWordPress\Mcp\ToolRegistry;
 use McpForWordPress\Support\Errors;
 use McpForWordPress\Support\Pagination;
 use McpForWordPress\Support\Schemas;
@@ -14,13 +15,8 @@ use McpForWordPress\Support\Schemas;
  */
 final class PagesAbilities {
 
-	public static function register(): void {
-		add_action( 'wp_abilities_api_init', [ self::class, 'on_init' ] );
-	}
-
-	public static function on_init(): void {
-		wp_register_ability( 'mcp-for-wordpress/pages.list', [
-			'label'               => __( 'List Pages', 'mcp-for-wordpress' ),
+	public static function register_tools( ToolRegistry $r ): void {
+		$r->register( 'mcp-for-wordpress/pages.list', [
 			'description'         => __( 'List pages with filtering and pagination.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -34,26 +30,20 @@ final class PagesAbilities {
 					'per_page' => [ 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20 ],
 				],
 			],
-			'output_schema'       => Pagination::wrap( Schemas::post() ),
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_pages' ),
 			'execute_callback'    => [ self::class, 'execute_list' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/pages.get', [
-			'label'               => __( 'Get Page', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/pages.get', [
 			'description'         => __( 'Retrieve a single page by ID.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ],
 			],
-			'output_schema'       => Schemas::post(),
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_pages' ),
 			'execute_callback'    => [ self::class, 'execute_get' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/pages.create', [
-			'label'               => __( 'Create Page', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/pages.create', [
 			'description'         => __( 'Create a new page.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -67,14 +57,11 @@ final class PagesAbilities {
 				],
 				'required'   => [ 'title' ],
 			],
-			'output_schema'       => Schemas::post(),
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_pages' ),
 			'execute_callback'    => [ self::class, 'execute_create' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/pages.update', [
-			'label'               => __( 'Update Page', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/pages.update', [
 			'description'         => __( 'Update an existing page.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -89,14 +76,11 @@ final class PagesAbilities {
 				],
 				'required'   => [ 'id' ],
 			],
-			'output_schema'       => Schemas::post(),
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_pages' ),
 			'execute_callback'    => [ self::class, 'execute_update' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/pages.delete', [
-			'label'               => __( 'Delete Page', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/pages.delete', [
 			'description'         => __( 'Move a page to trash or permanently delete it.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -106,44 +90,33 @@ final class PagesAbilities {
 				],
 				'required'   => [ 'id' ],
 			],
-			'output_schema'       => [ 'type' => 'object', 'properties' => [ 'deleted' => [ 'type' => 'boolean' ], 'id' => [ 'type' => 'integer' ] ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'delete_pages' ),
 			'execute_callback'    => [ self::class, 'execute_delete' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/pages.list-revisions', [
-			'label'               => __( 'List Page Revisions', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/pages.list-revisions', [
 			'description'         => __( 'List revisions for a page.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
-			'output_schema'       => [ 'type' => 'array', 'items' => [ 'type' => 'object' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_pages' ),
 			'execute_callback'    => [ self::class, 'execute_list_revisions' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/pages.restore-revision', [
-			'label'               => __( 'Restore Page Revision', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/pages.restore-revision', [
 			'description'         => __( 'Restore a page to a specific revision.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'revision_id' => [ 'type' => 'integer' ] ], 'required' => [ 'revision_id' ] ],
-			'output_schema'       => Schemas::post(),
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_pages' ),
 			'execute_callback'    => [ self::class, 'execute_restore_revision' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/pages.autosave', [
-			'label'               => __( 'Autosave Page', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/pages.autosave', [
 			'description'         => __( 'Create an autosave for a page.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
 				'properties' => [ 'id' => [ 'type' => 'integer' ], 'title' => [ 'type' => 'string' ], 'content' => [ 'type' => 'string' ] ],
 				'required' => [ 'id' ],
 			],
-			'output_schema'       => Schemas::post(),
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_pages' ),
 			'execute_callback'    => [ self::class, 'execute_autosave' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 	}
 

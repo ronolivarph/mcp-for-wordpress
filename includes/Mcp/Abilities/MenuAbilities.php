@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace McpForWordPress\Mcp\Abilities;
 
+use McpForWordPress\Mcp\ToolRegistry;
 use McpForWordPress\Support\Errors;
 use McpForWordPress\Support\Schemas;
 
@@ -13,61 +14,51 @@ use McpForWordPress\Support\Schemas;
  */
 final class MenuAbilities {
 
-	public static function register(): void {
-		add_action( 'wp_abilities_api_init', [ self::class, 'on_init' ] );
-	}
-
-	public static function on_init(): void {
-		wp_register_ability( 'mcp-for-wordpress/menus.list', [
-			'label' => __( 'List Menus', 'mcp-for-wordpress' ), 'description' => __( 'List all nav menus.', 'mcp-for-wordpress' ),
+	public static function register_tools( ToolRegistry $r ): void {
+		$r->register( 'mcp-for-wordpress/menus.list', [
+			'description' => __( 'List all nav menus.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => new \stdClass() ],
-			'output_schema' => [ 'type' => 'array', 'items' => [ 'type' => 'object' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_list' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_list' ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/menus.get', [
-			'label' => __( 'Get Menu', 'mcp-for-wordpress' ), 'description' => __( 'Get a menu by ID with its items.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/menus.get', [
+			'description' => __( 'Get a menu by ID with its items.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
-			'output_schema' => [ 'type' => 'object' ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_get' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_get' ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/menus.create', [
-			'label' => __( 'Create Menu', 'mcp-for-wordpress' ), 'description' => __( 'Create a new nav menu.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/menus.create', [
+			'description' => __( 'Create a new nav menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'name' => [ 'type' => 'string' ] ], 'required' => [ 'name' ] ],
-			'output_schema' => [ 'type' => 'object' ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_create' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_create' ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/menus.update', [
-			'label' => __( 'Update Menu', 'mcp-for-wordpress' ), 'description' => __( 'Rename a nav menu.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/menus.update', [
+			'description' => __( 'Rename a nav menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ], 'name' => [ 'type' => 'string' ] ], 'required' => [ 'id', 'name' ] ],
-			'output_schema' => [ 'type' => 'object' ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_update' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_update' ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/menus.delete', [
-			'label' => __( 'Delete Menu', 'mcp-for-wordpress' ), 'description' => __( 'Delete a nav menu.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/menus.delete', [
+			'description' => __( 'Delete a nav menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
-			'output_schema' => [ 'type' => 'object', 'properties' => [ 'deleted' => [ 'type' => 'boolean' ] ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_delete' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_delete' ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/menus.list-items', [
-			'label' => __( 'List Menu Items', 'mcp-for-wordpress' ), 'description' => __( 'List items in a menu.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/menus.list-items', [
+			'description' => __( 'List items in a menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'menu_id' => [ 'type' => 'integer' ] ], 'required' => [ 'menu_id' ] ],
-			'output_schema' => [ 'type' => 'array', 'items' => Schemas::menu_item() ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_list_items' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_list_items' ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/menus.add-item', [
-			'label' => __( 'Add Menu Item', 'mcp-for-wordpress' ), 'description' => __( 'Add an item to a nav menu.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/menus.add-item', [
+			'description' => __( 'Add an item to a nav menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
 				'properties' => [
@@ -77,13 +68,12 @@ final class MenuAbilities {
 				],
 				'required' => [ 'menu_id', 'title' ],
 			],
-			'output_schema' => Schemas::menu_item(),
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_add_item' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_add_item' ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/menus.update-item', [
-			'label' => __( 'Update Menu Item', 'mcp-for-wordpress' ), 'description' => __( 'Update a menu item.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/menus.update-item', [
+			'description' => __( 'Update a menu item.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
 				'properties' => [
@@ -92,29 +82,26 @@ final class MenuAbilities {
 				],
 				'required' => [ 'item_id' ],
 			],
-			'output_schema' => Schemas::menu_item(),
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_update_item' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_update_item' ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/menus.remove-item', [
-			'label' => __( 'Remove Menu Item', 'mcp-for-wordpress' ), 'description' => __( 'Remove an item from a menu.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/menus.remove-item', [
+			'description' => __( 'Remove an item from a menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'item_id' => [ 'type' => 'integer' ] ], 'required' => [ 'item_id' ] ],
-			'output_schema' => [ 'type' => 'object', 'properties' => [ 'deleted' => [ 'type' => 'boolean' ] ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_remove_item' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_remove_item' ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/menus.assign-location', [
-			'label' => __( 'Assign Menu Location', 'mcp-for-wordpress' ), 'description' => __( 'Assign a menu to a theme location.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/menus.assign-location', [
+			'description' => __( 'Assign a menu to a theme location.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
 				'properties' => [ 'menu_id' => [ 'type' => 'integer' ], 'location' => [ 'type' => 'string' ] ],
 				'required' => [ 'menu_id', 'location' ],
 			],
-			'output_schema' => [ 'type' => 'object', 'properties' => [ 'success' => [ 'type' => 'boolean' ] ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
-			'execute_callback' => [ self::class, 'execute_assign_location' ], 'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
+			'execute_callback' => [ self::class, 'execute_assign_location' ],
 		] );
 	}
 

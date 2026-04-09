@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace McpForWordPress\Mcp\Abilities;
 
+use McpForWordPress\Mcp\ToolRegistry;
 use McpForWordPress\Support\Errors;
 
 /**
@@ -13,38 +14,31 @@ use McpForWordPress\Support\Errors;
  */
 final class SettingsAbilities {
 
-	public static function register(): void {
-		add_action( 'wp_abilities_api_init', [ self::class, 'on_init' ] );
-	}
-
-	public static function on_init(): void {
+	public static function register_tools( ToolRegistry $r ): void {
 		$ro_tools = [
-			'settings.get'           => [ 'Get Settings', 'Get core WordPress settings.', 'manage_options' ],
-			'settings.list-post-types'  => [ 'List Post Types', 'List registered post types.', 'read' ],
-			'settings.list-post-statuses' => [ 'List Post Statuses', 'List registered post statuses.', 'read' ],
-			'settings.list-plugins'  => [ 'List Plugins', 'List installed plugins.', 'activate_plugins' ],
-			'settings.list-themes'   => [ 'List Themes', 'List installed themes.', 'switch_themes' ],
-			'settings.get-active-theme' => [ 'Get Active Theme', 'Get the active theme details.', 'read' ],
-			'settings.list-widgets'  => [ 'List Widgets', 'List registered widgets.', 'edit_theme_options' ],
-			'settings.list-sidebars' => [ 'List Sidebars', 'List registered sidebars.', 'edit_theme_options' ],
-			'settings.get-site-info' => [ 'Get Site Info', 'Get general site information.', 'read' ],
+			'settings.get'           => [ 'Get core WordPress settings.', 'manage_options' ],
+			'settings.list-post-types'  => [ 'List registered post types.', 'read' ],
+			'settings.list-post-statuses' => [ 'List registered post statuses.', 'read' ],
+			'settings.list-plugins'  => [ 'List installed plugins.', 'activate_plugins' ],
+			'settings.list-themes'   => [ 'List installed themes.', 'switch_themes' ],
+			'settings.get-active-theme' => [ 'Get the active theme details.', 'read' ],
+			'settings.list-widgets'  => [ 'List registered widgets.', 'edit_theme_options' ],
+			'settings.list-sidebars' => [ 'List registered sidebars.', 'edit_theme_options' ],
+			'settings.get-site-info' => [ 'Get general site information.', 'read' ],
 		];
 
-		foreach ( $ro_tools as $slug => [ $label, $desc, $cap ] ) {
+		foreach ( $ro_tools as $slug => [ $desc, $cap ] ) {
 			$method = 'execute_' . str_replace( [ '.', '-' ], '_', $slug );
-			wp_register_ability( "mcp-for-wordpress/{$slug}", [
-				'label'               => __( $label, 'mcp-for-wordpress' ), // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+			$r->register( "mcp-for-wordpress/{$slug}", [
 				'description'         => __( $desc, 'mcp-for-wordpress' ), // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
 				'input_schema'        => [ 'type' => 'object', 'properties' => new \stdClass() ],
-				'output_schema'       => [ 'type' => 'object' ],
 				'permission_callback' => static fn(): bool => current_user_can( $cap ),
 				'execute_callback'    => [ self::class, $method ],
-				'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 			] );
 		}
 
-		wp_register_ability( 'mcp-for-wordpress/settings.update', [
-			'label' => __( 'Update Setting', 'mcp-for-wordpress' ), 'description' => __( 'Update a WordPress option.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/settings.update', [
+			'description' => __( 'Update a WordPress option.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
 				'properties' => [
@@ -52,10 +46,8 @@ final class SettingsAbilities {
 				],
 				'required' => [ 'option', 'value' ],
 			],
-			'output_schema' => [ 'type' => 'object', 'properties' => [ 'updated' => [ 'type' => 'boolean' ] ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'manage_options' ),
 			'execute_callback' => [ self::class, 'execute_settings_update' ],
-			'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 	}
 

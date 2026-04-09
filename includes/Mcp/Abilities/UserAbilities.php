@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace McpForWordPress\Mcp\Abilities;
 
+use McpForWordPress\Mcp\ToolRegistry;
 use McpForWordPress\Support\Errors;
 use McpForWordPress\Support\Pagination;
 use McpForWordPress\Support\Schemas;
@@ -14,13 +15,9 @@ use McpForWordPress\Support\Schemas;
  */
 final class UserAbilities {
 
-	public static function register(): void {
-		add_action( 'wp_abilities_api_init', [ self::class, 'on_init' ] );
-	}
-
-	public static function on_init(): void {
-		wp_register_ability( 'mcp-for-wordpress/users.list', [
-			'label' => __( 'List Users', 'mcp-for-wordpress' ), 'description' => __( 'List users with pagination.', 'mcp-for-wordpress' ),
+	public static function register_tools( ToolRegistry $r ): void {
+		$r->register( 'mcp-for-wordpress/users.list', [
+			'description' => __( 'List users with pagination.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
 				'properties' => [
@@ -31,32 +28,26 @@ final class UserAbilities {
 					'per_page' => [ 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20 ],
 				],
 			],
-			'output_schema' => Pagination::wrap( Schemas::user() ),
 			'permission_callback' => static fn(): bool => current_user_can( 'list_users' ),
 			'execute_callback' => [ self::class, 'execute_list' ],
-			'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/users.get', [
-			'label' => __( 'Get User', 'mcp-for-wordpress' ), 'description' => __( 'Retrieve a user by ID.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/users.get', [
+			'description' => __( 'Retrieve a user by ID.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
-			'output_schema' => Schemas::user(),
 			'permission_callback' => static fn(): bool => current_user_can( 'list_users' ),
 			'execute_callback' => [ self::class, 'execute_get' ],
-			'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/users.get-current', [
-			'label' => __( 'Get Current User', 'mcp-for-wordpress' ), 'description' => __( 'Get the currently authenticated user.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/users.get-current', [
+			'description' => __( 'Get the currently authenticated user.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => new \stdClass() ],
-			'output_schema' => Schemas::user(),
 			'permission_callback' => static fn(): bool => current_user_can( 'read' ),
 			'execute_callback' => [ self::class, 'execute_get_current' ],
-			'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/users.create', [
-			'label' => __( 'Create User', 'mcp-for-wordpress' ), 'description' => __( 'Create a new user.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/users.create', [
+			'description' => __( 'Create a new user.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
 				'properties' => [
@@ -66,14 +57,12 @@ final class UserAbilities {
 				],
 				'required' => [ 'username', 'email', 'password' ],
 			],
-			'output_schema' => Schemas::user(),
 			'permission_callback' => static fn(): bool => current_user_can( 'create_users' ),
 			'execute_callback' => [ self::class, 'execute_create' ],
-			'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/users.update', [
-			'label' => __( 'Update User', 'mcp-for-wordpress' ), 'description' => __( 'Update user details.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/users.update', [
+			'description' => __( 'Update user details.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
 				'properties' => [
@@ -82,45 +71,37 @@ final class UserAbilities {
 				],
 				'required' => [ 'id' ],
 			],
-			'output_schema' => Schemas::user(),
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_users' ),
 			'execute_callback' => [ self::class, 'execute_update' ],
-			'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/users.delete', [
-			'label' => __( 'Delete User', 'mcp-for-wordpress' ), 'description' => __( 'Delete a user and reassign their content.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/users.delete', [
+			'description' => __( 'Delete a user and reassign their content.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
 				'properties' => [ 'id' => [ 'type' => 'integer' ], 'reassign' => [ 'type' => 'integer' ] ],
 				'required' => [ 'id' ],
 			],
-			'output_schema' => [ 'type' => 'object', 'properties' => [ 'deleted' => [ 'type' => 'boolean' ] ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'delete_users' ),
 			'execute_callback' => [ self::class, 'execute_delete' ],
-			'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/users.list-app-passwords', [
-			'label' => __( 'List Application Passwords', 'mcp-for-wordpress' ), 'description' => __( 'List app passwords for a user.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/users.list-app-passwords', [
+			'description' => __( 'List app passwords for a user.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'user_id' => [ 'type' => 'integer' ] ], 'required' => [ 'user_id' ] ],
-			'output_schema' => [ 'type' => 'array', 'items' => [ 'type' => 'object' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_users' ),
 			'execute_callback' => [ self::class, 'execute_list_app_passwords' ],
-			'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/users.change-role', [
-			'label' => __( 'Change User Role', 'mcp-for-wordpress' ), 'description' => __( 'Change a user\'s role.', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/users.change-role', [
+			'description' => __( 'Change a user\'s role.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
 				'properties' => [ 'id' => [ 'type' => 'integer' ], 'role' => [ 'type' => 'string' ] ],
 				'required' => [ 'id', 'role' ],
 			],
-			'output_schema' => Schemas::user(),
 			'permission_callback' => static fn(): bool => current_user_can( 'promote_users' ),
 			'execute_callback' => [ self::class, 'execute_change_role' ],
-			'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 	}
 

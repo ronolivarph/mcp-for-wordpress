@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace McpForWordPress\Mcp\Abilities;
 
+use McpForWordPress\Mcp\ToolRegistry;
 use McpForWordPress\Support\Errors;
 use McpForWordPress\Support\Pagination;
 use McpForWordPress\Support\Schemas;
@@ -14,13 +15,8 @@ use McpForWordPress\Support\Schemas;
  */
 final class MediaAbilities {
 
-	public static function register(): void {
-		add_action( 'wp_abilities_api_init', [ self::class, 'on_init' ] );
-	}
-
-	public static function on_init(): void {
-		wp_register_ability( 'mcp-for-wordpress/media.list', [
-			'label'               => __( 'List Media', 'mcp-for-wordpress' ),
+	public static function register_tools( ToolRegistry $r ): void {
+		$r->register( 'mcp-for-wordpress/media.list', [
 			'description'         => __( 'List media attachments with pagination.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -31,24 +27,18 @@ final class MediaAbilities {
 					'per_page'  => [ 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20 ],
 				],
 			],
-			'output_schema'       => Pagination::wrap( Schemas::media() ),
 			'permission_callback' => static fn(): bool => current_user_can( 'upload_files' ),
 			'execute_callback'    => [ self::class, 'execute_list' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/media.get', [
-			'label'               => __( 'Get Media', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/media.get', [
 			'description'         => __( 'Retrieve a single media attachment by ID.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
-			'output_schema'       => Schemas::media(),
 			'permission_callback' => static fn(): bool => current_user_can( 'upload_files' ),
 			'execute_callback'    => [ self::class, 'execute_get' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/media.upload', [
-			'label'               => __( 'Upload Media', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/media.upload', [
 			'description'         => __( 'Upload a media file from a URL or base64 data.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -61,14 +51,11 @@ final class MediaAbilities {
 				],
 				'required' => [ 'url' ],
 			],
-			'output_schema'       => Schemas::media(),
 			'permission_callback' => static fn(): bool => current_user_can( 'upload_files' ),
 			'execute_callback'    => [ self::class, 'execute_upload' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/media.update-meta', [
-			'label'               => __( 'Update Media Metadata', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/media.update-meta', [
 			'description'         => __( 'Update title, caption, or description of a media item.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -80,34 +67,26 @@ final class MediaAbilities {
 				],
 				'required' => [ 'id' ],
 			],
-			'output_schema'       => Schemas::media(),
 			'permission_callback' => static fn(): bool => current_user_can( 'upload_files' ),
 			'execute_callback'    => [ self::class, 'execute_update_meta' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/media.delete', [
-			'label'               => __( 'Delete Media', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/media.delete', [
 			'description'         => __( 'Permanently delete a media attachment.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
-			'output_schema'       => [ 'type' => 'object', 'properties' => [ 'deleted' => [ 'type' => 'boolean' ] ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'delete_posts' ),
 			'execute_callback'    => [ self::class, 'execute_delete' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 
-		wp_register_ability( 'mcp-for-wordpress/media.set-alt-text', [
-			'label'               => __( 'Set Alt Text', 'mcp-for-wordpress' ),
+		$r->register( 'mcp-for-wordpress/media.set-alt-text', [
 			'description'         => __( 'Set the alt text for a media attachment.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
 				'properties' => [ 'id' => [ 'type' => 'integer' ], 'alt_text' => [ 'type' => 'string' ] ],
 				'required' => [ 'id', 'alt_text' ],
 			],
-			'output_schema'       => Schemas::media(),
 			'permission_callback' => static fn(): bool => current_user_can( 'upload_files' ),
 			'execute_callback'    => [ self::class, 'execute_set_alt_text' ],
-			'meta'                => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ] ],
 		] );
 	}
 
