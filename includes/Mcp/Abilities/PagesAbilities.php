@@ -16,7 +16,7 @@ use McpForWordPress\Support\Schemas;
 final class PagesAbilities {
 
 	public static function register_tools( ToolRegistry $r ): void {
-		$r->register( 'mcp-for-wordpress/pages.list', [
+		$r->register( 'wp_pages_list', [
 			'description'         => __( 'List pages with filtering and pagination.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -34,7 +34,7 @@ final class PagesAbilities {
 			'execute_callback'    => [ self::class, 'execute_list' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/pages.get', [
+		$r->register( 'wp_pages_get', [
 			'description'         => __( 'Retrieve a single page by ID.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ],
@@ -43,7 +43,7 @@ final class PagesAbilities {
 			'execute_callback'    => [ self::class, 'execute_get' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/pages.create', [
+		$r->register( 'wp_pages_create', [
 			'description'         => __( 'Create a new page.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -61,7 +61,7 @@ final class PagesAbilities {
 			'execute_callback'    => [ self::class, 'execute_create' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/pages.update', [
+		$r->register( 'wp_pages_update', [
 			'description'         => __( 'Update an existing page.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -80,7 +80,7 @@ final class PagesAbilities {
 			'execute_callback'    => [ self::class, 'execute_update' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/pages.delete', [
+		$r->register( 'wp_pages_delete', [
 			'description'         => __( 'Move a page to trash or permanently delete it.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -94,21 +94,21 @@ final class PagesAbilities {
 			'execute_callback'    => [ self::class, 'execute_delete' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/pages.list-revisions', [
+		$r->register( 'wp_pages_list-revisions', [
 			'description'         => __( 'List revisions for a page.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_pages' ),
 			'execute_callback'    => [ self::class, 'execute_list_revisions' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/pages.restore-revision', [
+		$r->register( 'wp_pages_restore-revision', [
 			'description'         => __( 'Restore a page to a specific revision.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'revision_id' => [ 'type' => 'integer' ] ], 'required' => [ 'revision_id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_pages' ),
 			'execute_callback'    => [ self::class, 'execute_restore_revision' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/pages.autosave', [
+		$r->register( 'wp_pages_autosave', [
 			'description'         => __( 'Create an autosave for a page.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',

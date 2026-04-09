@@ -16,7 +16,7 @@ use McpForWordPress\Support\Schemas;
 final class PostsAbilities {
 
 	public static function register_tools( ToolRegistry $r ): void {
-		$r->register( 'mcp-for-wordpress/posts.list', [
+		$r->register( 'wp_posts_list', [
 			'description'         => __( 'List posts with filtering and pagination.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -36,7 +36,7 @@ final class PostsAbilities {
 			'execute_callback'    => [ self::class, 'execute_list' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/posts.get', [
+		$r->register( 'wp_posts_get', [
 			'description'         => __( 'Retrieve a single post by ID.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -47,7 +47,7 @@ final class PostsAbilities {
 			'execute_callback'    => [ self::class, 'execute_get' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/posts.create', [
+		$r->register( 'wp_posts_create', [
 			'description'         => __( 'Create a new post.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -66,7 +66,7 @@ final class PostsAbilities {
 			'execute_callback'    => [ self::class, 'execute_create' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/posts.update', [
+		$r->register( 'wp_posts_update', [
 			'description'         => __( 'Update an existing post.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -85,7 +85,7 @@ final class PostsAbilities {
 			'execute_callback'    => [ self::class, 'execute_update' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/posts.delete', [
+		$r->register( 'wp_posts_delete', [
 			'description'         => __( 'Move a post to trash or permanently delete it.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -99,7 +99,7 @@ final class PostsAbilities {
 			'execute_callback'    => [ self::class, 'execute_delete' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/posts.list-revisions', [
+		$r->register( 'wp_posts_list-revisions', [
 			'description'         => __( 'List revisions for a post.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -110,7 +110,7 @@ final class PostsAbilities {
 			'execute_callback'    => [ self::class, 'execute_list_revisions' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/posts.restore-revision', [
+		$r->register( 'wp_posts_restore-revision', [
 			'description'         => __( 'Restore a post to a specific revision.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',
@@ -121,7 +121,7 @@ final class PostsAbilities {
 			'execute_callback'    => [ self::class, 'execute_restore_revision' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/posts.autosave', [
+		$r->register( 'wp_posts_autosave', [
 			'description'         => __( 'Create an autosave for a post.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type'       => 'object',

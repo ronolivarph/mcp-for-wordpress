@@ -16,7 +16,7 @@ use McpForWordPress\Support\Schemas;
 final class UserAbilities {
 
 	public static function register_tools( ToolRegistry $r ): void {
-		$r->register( 'mcp-for-wordpress/users.list', [
+		$r->register( 'wp_users_list', [
 			'description' => __( 'List users with pagination.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
@@ -32,21 +32,21 @@ final class UserAbilities {
 			'execute_callback' => [ self::class, 'execute_list' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/users.get', [
+		$r->register( 'wp_users_get', [
 			'description' => __( 'Retrieve a user by ID.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'list_users' ),
 			'execute_callback' => [ self::class, 'execute_get' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/users.get-current', [
+		$r->register( 'wp_users_get-current', [
 			'description' => __( 'Get the currently authenticated user.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => new \stdClass() ],
 			'permission_callback' => static fn(): bool => current_user_can( 'read' ),
 			'execute_callback' => [ self::class, 'execute_get_current' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/users.create', [
+		$r->register( 'wp_users_create', [
 			'description' => __( 'Create a new user.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
@@ -61,7 +61,7 @@ final class UserAbilities {
 			'execute_callback' => [ self::class, 'execute_create' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/users.update', [
+		$r->register( 'wp_users_update', [
 			'description' => __( 'Update user details.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
@@ -75,7 +75,7 @@ final class UserAbilities {
 			'execute_callback' => [ self::class, 'execute_update' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/users.delete', [
+		$r->register( 'wp_users_delete', [
 			'description' => __( 'Delete a user and reassign their content.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
@@ -86,14 +86,14 @@ final class UserAbilities {
 			'execute_callback' => [ self::class, 'execute_delete' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/users.list-app-passwords', [
+		$r->register( 'wp_users_list-app-passwords', [
 			'description' => __( 'List app passwords for a user.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'user_id' => [ 'type' => 'integer' ] ], 'required' => [ 'user_id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_users' ),
 			'execute_callback' => [ self::class, 'execute_list_app_passwords' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/users.change-role', [
+		$r->register( 'wp_users_change-role', [
 			'description' => __( 'Change a user\'s role.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',

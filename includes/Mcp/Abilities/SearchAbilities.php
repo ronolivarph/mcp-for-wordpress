@@ -14,7 +14,7 @@ use McpForWordPress\Support\Pagination;
 final class SearchAbilities {
 
 	public static function register_tools( ToolRegistry $r ): void {
-		$r->register( 'mcp-for-wordpress/search.universal', [
+		$r->register( 'wp_search_universal', [
 			'description'         => __( 'Search across posts, pages, and custom post types.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -30,7 +30,7 @@ final class SearchAbilities {
 			'execute_callback'    => [ self::class, 'execute_universal' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/search.oembed-resolve', [
+		$r->register( 'wp_search_oembed-resolve', [
 			'description'         => __( 'Resolve an oEmbed URL and return embed HTML.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -45,7 +45,7 @@ final class SearchAbilities {
 			'execute_callback'    => [ self::class, 'execute_oembed_resolve' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/search.fetch-url-meta', [
+		$r->register( 'wp_search_fetch-url-meta', [
 			'description'         => __( 'Fetch title and meta description from a URL.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',

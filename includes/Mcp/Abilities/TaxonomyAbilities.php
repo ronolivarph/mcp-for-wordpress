@@ -24,7 +24,7 @@ final class TaxonomyAbilities {
 		self::register_term_tools( $r, 'post_tag', 'tags', 'manage_categories' );
 
 		// List taxonomies.
-		$r->register( 'mcp-for-wordpress/taxonomies.list', [
+		$r->register( 'wp_taxonomies_list', [
 			'description'         => __( 'List all registered taxonomies.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => new \stdClass() ],
 			'permission_callback' => static fn(): bool => current_user_can( 'read' ),
@@ -32,7 +32,7 @@ final class TaxonomyAbilities {
 		] );
 
 		// Get terms for a post.
-		$r->register( 'mcp-for-wordpress/taxonomies.get-terms-for-post', [
+		$r->register( 'wp_taxonomies_get-terms-for-post', [
 			'description'         => __( 'Get all taxonomy terms assigned to a post.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -50,7 +50,7 @@ final class TaxonomyAbilities {
 	private static function register_term_tools( ToolRegistry $r, string $taxonomy, string $slug, string $capability ): void {
 		$singular = $taxonomy === 'post_tag' ? 'tag' : 'category';
 
-		$r->register( "mcp-for-wordpress/{$slug}.list", [
+		$r->register( "wp_{$slug}_list", [
 			'description'         => sprintf( __( 'List %s with pagination.', 'mcp-for-wordpress' ), $slug ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -66,14 +66,14 @@ final class TaxonomyAbilities {
 			'execute_callback'    => static fn( array $input ) => self::execute_list_terms( $taxonomy, $input ),
 		] );
 
-		$r->register( "mcp-for-wordpress/{$slug}.get", [
+		$r->register( "wp_{$slug}_get", [
 			'description'         => sprintf( __( 'Get a single %s by ID.', 'mcp-for-wordpress' ), $singular ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'read' ),
 			'execute_callback'    => static fn( array $input ) => self::execute_get_term( $taxonomy, $input ),
 		] );
 
-		$r->register( "mcp-for-wordpress/{$slug}.create", [
+		$r->register( "wp_{$slug}_create", [
 			'description'         => sprintf( __( 'Create a new %s.', 'mcp-for-wordpress' ), $singular ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -89,7 +89,7 @@ final class TaxonomyAbilities {
 			'execute_callback'    => static fn( array $input ) => self::execute_create_term( $taxonomy, $input ),
 		] );
 
-		$r->register( "mcp-for-wordpress/{$slug}.update", [
+		$r->register( "wp_{$slug}_update", [
 			'description'         => sprintf( __( 'Update a %s.', 'mcp-for-wordpress' ), $singular ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -103,7 +103,7 @@ final class TaxonomyAbilities {
 			'execute_callback'    => static fn( array $input ) => self::execute_update_term( $taxonomy, $input ),
 		] );
 
-		$r->register( "mcp-for-wordpress/{$slug}.delete", [
+		$r->register( "wp_{$slug}_delete", [
 			'description'         => sprintf( __( 'Delete a %s.', 'mcp-for-wordpress' ), $singular ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( $capability ),

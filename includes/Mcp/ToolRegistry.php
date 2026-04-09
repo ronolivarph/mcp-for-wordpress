@@ -10,7 +10,7 @@ namespace McpForWordPress\Mcp;
  * directly by McpEndpoint without the WordPress Abilities API.
  *
  * Usage:
- *   ToolRegistry::instance()->register('mcp-for-wordpress/posts.list', [
+ *   ToolRegistry::instance()->register('wp_posts_list', [
  *       'description'         => 'List posts with filtering.',
  *       'input_schema'        => [...],
  *       'permission_callback' => fn() => current_user_can('edit_posts'),
@@ -36,7 +36,7 @@ final class ToolRegistry {
 	/**
 	 * Register a tool.
 	 *
-	 * @param string               $name Tool name (e.g. 'mcp-for-wordpress/posts.list').
+	 * @param string               $name Tool name (e.g. 'wp_posts_list').
 	 * @param array<string, mixed> $args {
 	 *     @type string   $description         Human-readable description.
 	 *     @type array    $input_schema        JSON Schema for tool arguments.

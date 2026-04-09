@@ -16,7 +16,7 @@ use McpForWordPress\Support\Schemas;
 final class MediaAbilities {
 
 	public static function register_tools( ToolRegistry $r ): void {
-		$r->register( 'mcp-for-wordpress/media.list', [
+		$r->register( 'wp_media_list', [
 			'description'         => __( 'List media attachments with pagination.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -31,14 +31,14 @@ final class MediaAbilities {
 			'execute_callback'    => [ self::class, 'execute_list' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/media.get', [
+		$r->register( 'wp_media_get', [
 			'description'         => __( 'Retrieve a single media attachment by ID.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'upload_files' ),
 			'execute_callback'    => [ self::class, 'execute_get' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/media.upload', [
+		$r->register( 'wp_media_upload', [
 			'description'         => __( 'Upload a media file from a URL or base64 data.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -55,7 +55,7 @@ final class MediaAbilities {
 			'execute_callback'    => [ self::class, 'execute_upload' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/media.update-meta', [
+		$r->register( 'wp_media_update-meta', [
 			'description'         => __( 'Update title, caption, or description of a media item.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -71,14 +71,14 @@ final class MediaAbilities {
 			'execute_callback'    => [ self::class, 'execute_update_meta' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/media.delete', [
+		$r->register( 'wp_media_delete', [
 			'description'         => __( 'Permanently delete a media attachment.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'delete_posts' ),
 			'execute_callback'    => [ self::class, 'execute_delete' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/media.set-alt-text', [
+		$r->register( 'wp_media_set-alt-text', [
 			'description'         => __( 'Set the alt text for a media attachment.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',

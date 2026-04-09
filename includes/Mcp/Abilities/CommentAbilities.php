@@ -16,7 +16,7 @@ use McpForWordPress\Support\Schemas;
 final class CommentAbilities {
 
 	public static function register_tools( ToolRegistry $r ): void {
-		$r->register( 'mcp-for-wordpress/comments.list', [
+		$r->register( 'wp_comments_list', [
 			'description'         => __( 'List comments with filtering and pagination.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -32,14 +32,14 @@ final class CommentAbilities {
 			'execute_callback'    => [ self::class, 'execute_list' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/comments.get', [
+		$r->register( 'wp_comments_get', [
 			'description'         => __( 'Retrieve a single comment by ID.', 'mcp-for-wordpress' ),
 			'input_schema'        => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'moderate_comments' ),
 			'execute_callback'    => [ self::class, 'execute_get' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/comments.create', [
+		$r->register( 'wp_comments_create', [
 			'description'         => __( 'Add a comment to a post.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -55,7 +55,7 @@ final class CommentAbilities {
 			'execute_callback'    => [ self::class, 'execute_create' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/comments.update', [
+		$r->register( 'wp_comments_update', [
 			'description'         => __( 'Update a comment.', 'mcp-for-wordpress' ),
 			'input_schema'        => [
 				'type' => 'object',
@@ -66,28 +66,28 @@ final class CommentAbilities {
 			'execute_callback'    => [ self::class, 'execute_update' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/comments.delete', [
+		$r->register( 'wp_comments_delete', [
 			'description' => __( 'Permanently delete a comment.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'moderate_comments' ),
 			'execute_callback' => [ self::class, 'execute_delete' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/comments.approve', [
+		$r->register( 'wp_comments_approve', [
 			'description' => __( 'Approve a held comment.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'moderate_comments' ),
 			'execute_callback' => [ self::class, 'execute_approve' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/comments.mark-spam', [
+		$r->register( 'wp_comments_mark-spam', [
 			'description' => __( 'Mark a comment as spam.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'moderate_comments' ),
 			'execute_callback' => [ self::class, 'execute_mark_spam' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/comments.trash', [
+		$r->register( 'wp_comments_trash', [
 			'description' => __( 'Move a comment to trash.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'moderate_comments' ),

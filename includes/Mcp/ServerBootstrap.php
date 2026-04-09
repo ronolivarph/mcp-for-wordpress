@@ -40,7 +40,7 @@ final class ServerBootstrap {
 		$r = ToolRegistry::instance();
 
 		// Ping — health check.
-		$r->register( 'mcp-for-wordpress/ping', [
+		$r->register( 'wp_ping', [
 			'description'         => 'Health-check tool. Returns pong.',
 			'input_schema'        => [ 'type' => 'object', 'properties' => new \stdClass() ],
 			'permission_callback' => static fn(): bool => current_user_can( 'read' ),

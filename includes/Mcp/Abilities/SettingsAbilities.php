@@ -28,8 +28,9 @@ final class SettingsAbilities {
 		];
 
 		foreach ( $ro_tools as $slug => [ $desc, $cap ] ) {
-			$method = 'execute_' . str_replace( [ '.', '-' ], '_', $slug );
-			$r->register( "mcp-for-wordpress/{$slug}", [
+			$method     = 'execute_' . str_replace( [ '.', '-' ], '_', $slug );
+			$safe_slug  = str_replace( [ '.', '-' ], '_', $slug );
+			$r->register( "wp_{$safe_slug}", [
 				'description'         => __( $desc, 'mcp-for-wordpress' ), // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
 				'input_schema'        => [ 'type' => 'object', 'properties' => new \stdClass() ],
 				'permission_callback' => static fn(): bool => current_user_can( $cap ),
@@ -37,7 +38,7 @@ final class SettingsAbilities {
 			] );
 		}
 
-		$r->register( 'mcp-for-wordpress/settings.update', [
+		$r->register( 'wp_settings_update', [
 			'description' => __( 'Update a WordPress option.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',

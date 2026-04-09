@@ -15,49 +15,49 @@ use McpForWordPress\Support\Schemas;
 final class MenuAbilities {
 
 	public static function register_tools( ToolRegistry $r ): void {
-		$r->register( 'mcp-for-wordpress/menus.list', [
+		$r->register( 'wp_menus_list', [
 			'description' => __( 'List all nav menus.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => new \stdClass() ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
 			'execute_callback' => [ self::class, 'execute_list' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/menus.get', [
+		$r->register( 'wp_menus_get', [
 			'description' => __( 'Get a menu by ID with its items.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
 			'execute_callback' => [ self::class, 'execute_get' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/menus.create', [
+		$r->register( 'wp_menus_create', [
 			'description' => __( 'Create a new nav menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'name' => [ 'type' => 'string' ] ], 'required' => [ 'name' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
 			'execute_callback' => [ self::class, 'execute_create' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/menus.update', [
+		$r->register( 'wp_menus_update', [
 			'description' => __( 'Rename a nav menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ], 'name' => [ 'type' => 'string' ] ], 'required' => [ 'id', 'name' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
 			'execute_callback' => [ self::class, 'execute_update' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/menus.delete', [
+		$r->register( 'wp_menus_delete', [
 			'description' => __( 'Delete a nav menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'id' => [ 'type' => 'integer' ] ], 'required' => [ 'id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
 			'execute_callback' => [ self::class, 'execute_delete' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/menus.list-items', [
+		$r->register( 'wp_menus_list-items', [
 			'description' => __( 'List items in a menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'menu_id' => [ 'type' => 'integer' ] ], 'required' => [ 'menu_id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
 			'execute_callback' => [ self::class, 'execute_list_items' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/menus.add-item', [
+		$r->register( 'wp_menus_add-item', [
 			'description' => __( 'Add an item to a nav menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
@@ -72,7 +72,7 @@ final class MenuAbilities {
 			'execute_callback' => [ self::class, 'execute_add_item' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/menus.update-item', [
+		$r->register( 'wp_menus_update-item', [
 			'description' => __( 'Update a menu item.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
@@ -86,14 +86,14 @@ final class MenuAbilities {
 			'execute_callback' => [ self::class, 'execute_update_item' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/menus.remove-item', [
+		$r->register( 'wp_menus_remove-item', [
 			'description' => __( 'Remove an item from a menu.', 'mcp-for-wordpress' ),
 			'input_schema' => [ 'type' => 'object', 'properties' => [ 'item_id' => [ 'type' => 'integer' ] ], 'required' => [ 'item_id' ] ],
 			'permission_callback' => static fn(): bool => current_user_can( 'edit_theme_options' ),
 			'execute_callback' => [ self::class, 'execute_remove_item' ],
 		] );
 
-		$r->register( 'mcp-for-wordpress/menus.assign-location', [
+		$r->register( 'wp_menus_assign-location', [
 			'description' => __( 'Assign a menu to a theme location.', 'mcp-for-wordpress' ),
 			'input_schema' => [
 				'type' => 'object',
