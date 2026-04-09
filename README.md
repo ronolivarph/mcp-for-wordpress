@@ -26,7 +26,7 @@ Once installed, Claude Desktop (or any MCP client) can connect to your WordPress
 
 ### From Release ZIP
 
-1. Download `mcp-for-wordpress-0.1.0.zip` from the [GitHub Releases](https://github.com/gohire/mcp-for-wordpress/releases) page
+1. Download `mcp-for-wordpress-0.1.0.zip` from the [GitHub Releases](https://github.com/ronolivarph/mcp-for-wordpress/releases) page
 2. In WordPress admin: **Plugins → Add New → Upload Plugin** → select the ZIP
 3. Click **Activate**
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: MCP for WordPress
- * Plugin URI:  https://github.com/gohire/mcp-for-wordpress
+ * Plugin URI:  https://github.com/ronolivarph/mcp-for-wordpress
  * Description: Turns a self-hosted WordPress site into an OAuth 2.1-protected remote MCP server for Claude Desktop and other MCP clients.
  * Version:     0.1.0
  * Requires PHP: 8.1
