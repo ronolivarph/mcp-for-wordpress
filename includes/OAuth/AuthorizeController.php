@@ -87,9 +87,10 @@ final class AuthorizeController {
 			$psr_request  = self::create_psr7_from_globals();
 			$auth_request = $server->validateAuthorizationRequest( $psr_request );
 
-			// Store the auth request in a transient keyed by a nonce.
+			// Store the original query string in a transient (NOT the object —
+			// league/oauth2-server objects don't survive serialize/unserialize).
 			$nonce = wp_create_nonce( 'mcpwp_authorize' );
-			set_transient( 'mcpwp_auth_request_' . $nonce, serialize( $auth_request ), 600 );
+			set_transient( 'mcpwp_auth_qs_' . $nonce, $_SERVER['QUERY_STRING'] ?? '', 600 );
 
 			// Render consent screen.
 			self::render_consent_screen( $auth_request, $nonce );
@@ -104,6 +105,9 @@ final class AuthorizeController {
 
 	/**
 	 * POST /mcpwp-authorize/ — user approves or denies the request.
+	 *
+	 * Re-validates the authorization request from the stored query string,
+	 * sets the user, and completes the flow (redirect with auth code).
 	 */
 	private static function handle_post(): void {
 		if ( ! is_user_logged_in() ) {
@@ -115,34 +119,45 @@ final class AuthorizeController {
 			wp_die( esc_html__( 'Invalid nonce.', 'mcp-for-wordpress' ), 403 );
 		}
 
-		$auth_request_data = get_transient( 'mcpwp_auth_request_' . $nonce );
-		if ( ! $auth_request_data ) {
+		$query_string = get_transient( 'mcpwp_auth_qs_' . $nonce );
+		if ( $query_string === false ) {
 			wp_die( esc_html__( 'Authorization request expired. Please try again.', 'mcp-for-wordpress' ), 400 );
 		}
-
-		$auth_request = unserialize( $auth_request_data ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
-		delete_transient( 'mcpwp_auth_request_' . $nonce );
+		delete_transient( 'mcpwp_auth_qs_' . $nonce );
 
 		$approved = ( sanitize_text_field( wp_unslash( $_POST['approve'] ?? '0' ) ) === '1' );
 
-		$auth_request->setUser( new UserEntity( get_current_user_id() ) );
-		$auth_request->setAuthorizationApproved( $approved );
+		// Reconstruct a PSR-7 GET request from the saved query string
+		// so league/oauth2-server can re-validate and complete the flow.
+		$factory     = new Psr17Factory();
+		$authorize_url = home_url( '/' . self::ENDPOINT_SLUG . '/' ) . '?' . $query_string;
+		$psr_request = $factory->createServerRequest( 'GET', $authorize_url );
+
+		// Parse and set query params on the PSR-7 request.
+		parse_str( $query_string, $query_params );
+		$psr_request = $psr_request->withQueryParams( $query_params );
 
 		$server = AuthorizationServer::instance();
 
 		try {
+			$auth_request = $server->validateAuthorizationRequest( $psr_request );
+			$auth_request->setUser( new UserEntity( get_current_user_id() ) );
+			$auth_request->setAuthorizationApproved( $approved );
+
 			$psr_response = $server->completeAuthorizationRequest(
 				$auth_request,
-				( new Psr17Factory() )->createResponse()
+				$factory->createResponse()
 			);
 
 			self::send_psr7_response( $psr_response );
 			exit;
 
 		} catch ( OAuthServerException $e ) {
-			$psr_response = $e->generateHttpResponse( ( new Psr17Factory() )->createResponse() );
+			$psr_response = $e->generateHttpResponse( $factory->createResponse() );
 			self::send_psr7_response( $psr_response );
 			exit;
+		} catch ( \Exception $e ) {
+			wp_die( esc_html( $e->getMessage() ), 500 );
 		}
 	}
 
