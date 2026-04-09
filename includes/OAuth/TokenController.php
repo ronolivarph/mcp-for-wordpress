@@ -36,6 +36,27 @@ final class TokenController {
 				'permission_callback' => '__return_true',
 			]
 		);
+
+		// Temporary debug endpoint — remove before production release.
+		register_rest_route(
+			'mcpwp/v1',
+			'/oauth/debug',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ self::class, 'handle_debug' ],
+				'permission_callback' => static fn(): bool => current_user_can( 'manage_options' ),
+			]
+		);
+	}
+
+	/**
+	 * Debug endpoint — shows recent token errors. Requires admin login.
+	 */
+	public static function handle_debug( WP_REST_Request $request ): WP_REST_Response {
+		return new WP_REST_Response( [
+			'last_token_error'  => get_option( 'mcpwp_last_token_error', 'none' ),
+			'last_token_params' => get_option( 'mcpwp_last_token_params', [] ),
+		] );
 	}
 
 	/**
@@ -74,14 +95,39 @@ final class TokenController {
 			$psr_request = $psr_request->withHeader( 'Authorization', $auth_header );
 		}
 
+		// Log the params for debugging (temporary).
+		update_option( 'mcpwp_last_token_params', [
+			'body_params'   => array_keys( $body_params ),
+			'grant_type'    => $body_params['grant_type'] ?? 'missing',
+			'client_id'     => $body_params['client_id'] ?? 'missing',
+			'has_code'      => isset( $body_params['code'] ),
+			'has_verifier'  => isset( $body_params['code_verifier'] ),
+			'has_redirect'  => isset( $body_params['redirect_uri'] ),
+			'has_resource'  => isset( $body_params['resource'] ),
+			'content_type'  => $request->get_content_type(),
+			'raw_body_len'  => strlen( $request->get_body() ?? '' ),
+		], false );
+
 		try {
 			$psr_response = $server->respondToAccessTokenRequest(
 				$psr_request,
 				$factory->createResponse()
 			);
+			update_option( 'mcpwp_last_token_error', 'success', false );
 		} catch ( OAuthServerException $e ) {
+			update_option( 'mcpwp_last_token_error', [
+				'error'   => $e->getErrorType(),
+				'message' => $e->getMessage(),
+				'hint'    => $e->getHint(),
+				'code'    => $e->getHttpStatusCode(),
+			], false );
 			$psr_response = $e->generateHttpResponse( $factory->createResponse() );
 		} catch ( \Exception $e ) {
+			update_option( 'mcpwp_last_token_error', [
+				'error'   => 'exception',
+				'message' => $e->getMessage(),
+				'file'    => $e->getFile() . ':' . $e->getLine(),
+			], false );
 			$psr_response = ( new OAuthServerException( $e->getMessage(), 0, 'unknown_error', 500 ) )
 				->generateHttpResponse( $factory->createResponse() );
 		}
