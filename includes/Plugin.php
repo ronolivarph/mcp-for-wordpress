@@ -53,9 +53,11 @@ final class Plugin {
 		// OAuth discovery endpoints (.well-known + REST fallbacks).
 		DiscoveryController::register();
 
-		// OAuth endpoints (REST API).
+		// OAuth authorize endpoint (rewrite rule — needs cookie auth, not REST).
+		AuthorizeController::register();
+
+		// OAuth endpoints (REST API — DCR and token don't need cookie auth).
 		add_action( 'rest_api_init', [ DcrController::class, 'register' ] );
-		add_action( 'rest_api_init', [ AuthorizeController::class, 'register' ] );
 		add_action( 'rest_api_init', [ TokenController::class, 'register' ] );
 	}
 }

@@ -8,44 +8,75 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 
 /**
- * Handles the /authorize endpoint.
+ * Handles the /authorize endpoint via a WordPress rewrite rule (NOT REST API).
  *
- * Endpoint: GET /wp-json/mcpwp/v1/oauth/authorize (shows consent screen)
- *           POST /wp-json/mcpwp/v1/oauth/authorize (approves/denies)
+ * WordPress REST API deliberately ignores cookie auth (requires X-WP-Nonce header),
+ * which breaks the browser-based OAuth flow. Using a rewrite rule means normal
+ * WordPress cookie authentication works after wp-login.php redirect.
  *
- * If the user is not logged in, they are redirected to wp-login.php first.
+ * URL: https://example.com/mcpwp-authorize/?client_id=...&redirect_uri=...&...
  */
 final class AuthorizeController {
 
+	public const ENDPOINT_SLUG = 'mcpwp-authorize';
+
 	/**
-	 * Register the REST routes.
+	 * Register rewrite rules and hooks.
 	 */
 	public static function register(): void {
-		register_rest_route(
-			'mcpwp/v1',
-			'/oauth/authorize',
-			[
-				[
-					'methods'             => 'GET',
-					'callback'            => [ self::class, 'handle_get' ],
-					'permission_callback' => '__return_true',
-				],
-				[
-					'methods'             => 'POST',
-					'callback'            => [ self::class, 'handle_post' ],
-					'permission_callback' => '__return_true',
-				],
-			]
+		add_action( 'init', [ self::class, 'add_rewrite_rules' ] );
+		add_filter( 'query_vars', [ self::class, 'add_query_vars' ] );
+		add_action( 'template_redirect', [ self::class, 'handle_request' ] );
+	}
+
+	/**
+	 * Add the rewrite rule for the authorize endpoint.
+	 */
+	public static function add_rewrite_rules(): void {
+		add_rewrite_rule(
+			'^' . self::ENDPOINT_SLUG . '/?$',
+			'index.php?mcpwp_authorize=1',
+			'top'
 		);
 	}
 
 	/**
-	 * GET /authorize — validate the auth request and show the consent screen.
+	 * Register the query var.
+	 *
+	 * @param string[] $vars Existing query vars.
+	 * @return string[]
 	 */
-	public static function handle_get( \WP_REST_Request $request ): void {
-		// Require login.
+	public static function add_query_vars( array $vars ): array {
+		$vars[] = 'mcpwp_authorize';
+		return $vars;
+	}
+
+	/**
+	 * Handle the authorize request on template_redirect.
+	 */
+	public static function handle_request(): void {
+		if ( ! get_query_var( 'mcpwp_authorize' ) ) {
+			return;
+		}
+
+		$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+		if ( $method === 'GET' ) {
+			self::handle_get();
+		} elseif ( $method === 'POST' ) {
+			self::handle_post();
+		}
+
+		exit;
+	}
+
+	/**
+	 * GET /mcpwp-authorize/ — validate the auth request and show the consent screen.
+	 */
+	private static function handle_get(): void {
+		// Require login — redirect to wp-login.php with return URL.
 		if ( ! is_user_logged_in() ) {
-			$current_url = rest_url( 'mcpwp/v1/oauth/authorize' ) . '?' . http_build_query( $request->get_query_params() );
+			$current_url = home_url( '/' . self::ENDPOINT_SLUG . '/' ) . '?' . $_SERVER['QUERY_STRING'];
 			wp_safe_redirect( wp_login_url( $current_url ) );
 			exit;
 		}
@@ -53,7 +84,7 @@ final class AuthorizeController {
 		$server = AuthorizationServer::instance();
 
 		try {
-			$psr_request  = self::wp_to_psr7( $request );
+			$psr_request  = self::create_psr7_from_globals();
 			$auth_request = $server->validateAuthorizationRequest( $psr_request );
 
 			// Store the auth request in a transient keyed by a nonce.
@@ -72,14 +103,14 @@ final class AuthorizeController {
 	}
 
 	/**
-	 * POST /authorize — user approves or denies the request.
+	 * POST /mcpwp-authorize/ — user approves or denies the request.
 	 */
-	public static function handle_post( \WP_REST_Request $request ): void {
+	private static function handle_post(): void {
 		if ( ! is_user_logged_in() ) {
 			wp_die( esc_html__( 'You must be logged in.', 'mcp-for-wordpress' ), 403 );
 		}
 
-		$nonce = $request->get_param( '_wpnonce' );
+		$nonce = sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ?? '' ) );
 		if ( ! wp_verify_nonce( $nonce, 'mcpwp_authorize' ) ) {
 			wp_die( esc_html__( 'Invalid nonce.', 'mcp-for-wordpress' ), 403 );
 		}
@@ -92,7 +123,7 @@ final class AuthorizeController {
 		$auth_request = unserialize( $auth_request_data ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
 		delete_transient( 'mcpwp_auth_request_' . $nonce );
 
-		$approved = ( $request->get_param( 'approve' ) === '1' );
+		$approved = ( sanitize_text_field( wp_unslash( $_POST['approve'] ?? '0' ) ) === '1' );
 
 		$auth_request->setUser( new UserEntity( get_current_user_id() ) );
 		$auth_request->setAuthorizationApproved( $approved );
@@ -116,18 +147,26 @@ final class AuthorizeController {
 	}
 
 	/**
+	 * Get the full authorize endpoint URL.
+	 *
+	 * @return string
+	 */
+	public static function get_endpoint_url(): string {
+		return home_url( '/' . self::ENDPOINT_SLUG . '/' );
+	}
+
+	/**
 	 * Render the OAuth consent screen.
 	 *
 	 * @param \League\OAuth2\Server\RequestTypes\AuthorizationRequestInterface $auth_request The validated auth request.
 	 * @param string $nonce The WP nonce for the form submission.
 	 */
 	private static function render_consent_screen( $auth_request, string $nonce ): void {
-		$client      = $auth_request->getClient();
-		$scopes      = $auth_request->getScopes();
-		$action_url  = rest_url( 'mcpwp/v1/oauth/authorize' );
-		$user        = wp_get_current_user();
+		$client     = $auth_request->getClient();
+		$scopes     = $auth_request->getScopes();
+		$action_url = home_url( '/' . self::ENDPOINT_SLUG . '/' );
+		$user       = wp_get_current_user();
 
-		// Output a minimal, styled page.
 		header( 'Content-Type: text/html; charset=utf-8' );
 
 		echo '<!DOCTYPE html><html><head>';
@@ -190,18 +229,12 @@ final class AuthorizeController {
 	}
 
 	/**
-	 * Convert a WP_REST_Request to a PSR-7 ServerRequest.
-	 *
-	 * This is a minimal conversion — league/oauth2-server reads query params and body.
+	 * Create a PSR-7 ServerRequest from PHP globals.
 	 */
-	private static function wp_to_psr7( \WP_REST_Request $request ): \Psr\Http\Message\ServerRequestInterface {
+	private static function create_psr7_from_globals(): \Psr\Http\Message\ServerRequestInterface {
 		$factory = new Psr17Factory();
 		$creator = new ServerRequestCreator( $factory, $factory, $factory, $factory );
-
-		// Build from globals, then overlay WP's parsed params.
-		$psr_request = $creator->fromGlobals();
-
-		return $psr_request;
+		return $creator->fromGlobals();
 	}
 
 	/**

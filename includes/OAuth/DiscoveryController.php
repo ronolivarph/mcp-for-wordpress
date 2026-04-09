@@ -136,7 +136,7 @@ final class DiscoveryController {
 
 		return [
 			'issuer'                                => $site_url,
-			'authorization_endpoint'                => rest_url( 'mcpwp/v1/oauth/authorize' ),
+			'authorization_endpoint'                => AuthorizeController::get_endpoint_url(),
 			'token_endpoint'                        => rest_url( 'mcpwp/v1/oauth/token' ),
 			'registration_endpoint'                 => rest_url( 'mcpwp/v1/oauth/register' ),
 			'scopes_supported'                      => [ 'mcp' ],
