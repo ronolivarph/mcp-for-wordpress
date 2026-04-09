@@ -6,8 +6,8 @@
  * Version:     0.1.0
  * Requires PHP: 8.1
  * Requires at least: 6.4
- * Author:      GoHire
- * Author URI:  https://gohire.io
+ * Author:      Ron Olivar
+ * Author URI:  https://github.com/ronolivarph
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: mcp-for-wordpress
