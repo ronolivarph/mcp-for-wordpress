@@ -1,0 +1,56 @@
+{
+    "name": "gohire/mcp-for-wordpress",
+    "description": "WordPress plugin that turns a self-hosted WordPress site into an OAuth 2.1-protected remote MCP server for Claude Desktop.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.1",
+        "automattic/jetpack-autoloader": "^3.0",
+        "league/oauth2-server": "^9.1",
+        "nyholm/psr7": "^1.8",
+        "nyholm/psr7-server": "^1.1",
+        "wordpress/mcp-adapter": "dev-trunk"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "wp-phpunit/wp-phpunit": "^6.4",
+        "squizlabs/php_codesniffer": "^3.7",
+        "wp-coding-standards/wpcs": "^3.0",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "phpstan/phpstan": "^1.10",
+        "szepeviktor/phpstan-wordpress": "^1.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "McpForWordPress\\": "includes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "McpForWordPress\\Tests\\": "tests/"
+        }
+    },
+    "repositories": [],
+    "config": {
+        "allow-plugins": {
+            "automattic/jetpack-autoloader": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:unit": "phpunit --testsuite unit",
+        "test:integration": "phpunit --testsuite integration",
+        "lint": "phpcs",
+        "lint:fix": "phpcbf",
+        "stan": "phpstan analyse",
+        "build:zip": [
+            "composer install --no-dev --optimize-autoloader",
+            "@php -r \"$zip = new ZipArchive(); $zip->open('mcp-for-wordpress.zip', ZipArchive::CREATE | ZipArchive::OVERWRITE); $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('.', RecursiveDirectoryIterator::SKIP_DOTS)); foreach ($files as $file) { if (str_starts_with($file->getPathname(), './.git') || str_starts_with($file->getPathname(), './tests') || str_starts_with($file->getPathname(), './node_modules')) continue; $zip->addFile($file->getPathname(), 'mcp-for-wordpress/' . substr($file->getPathname(), 2)); } $zip->close();\"",
+            "composer install"
+        ]
+    }
+}

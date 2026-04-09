@@ -1,0 +1,27 @@
+# Dependencies (committed for releases, ignored in dev)
+/vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.zip
+/node_modules/
+
+# Environment
+.env
+.env.*
+
+# PHPUnit
+.phpunit.result.cache
+/coverage/
+
+# PHPStan
+/phpstan-baseline.neon

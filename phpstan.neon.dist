@@ -1,0 +1,12 @@
+parameters:
+    level: 6
+    paths:
+        - includes
+        - mcp-for-wordpress.php
+    scanDirectories:
+        - vendor
+    bootstrapFiles:
+        - vendor/autoload.php
+    ignoreErrors:
+        # WordPress global functions that PHPStan doesn't know about without stubs
+        - '#Function wp_register_ability not found#'

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ruleset name="MCP for WordPress">
+	<description>Coding standards for MCP for WordPress plugin.</description>
+
+	<!-- Scan these files -->
+	<file>./includes</file>
+	<file>./mcp-for-wordpress.php</file>
+
+	<!-- Exclude vendor -->
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+
+	<!-- Use WordPress-Extra (includes WordPress-Core + docs) -->
+	<rule ref="WordPress-Extra">
+		<!-- Allow short array syntax -->
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+	</rule>
+
+	<!-- Check for PHP cross-version compatibility (8.1+) -->
+	<config name="testVersion" value="8.1-"/>
+	<rule ref="PHPCompatibilityWP"/>
+
+	<!-- WordPress minimum version -->
+	<config name="minimum_wp_version" value="6.4"/>
+
+	<!-- Text domain -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="mcp-for-wordpress"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Prefixes for globals, hooks, options -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="mcpwp"/>
+				<element value="mcp_for_wordpress"/>
+				<element value="McpForWordPress"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>

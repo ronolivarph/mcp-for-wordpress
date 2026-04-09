@@ -1,0 +1,40 @@
+services:
+  php:
+    build: .
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    volumes:
+      - .:/app
+      # Anonymous volume so container node_modules/vendor don't clash with host
+      - /app/vendor
+    working_dir: /app
+    entrypoint: ["php"]
+    command: ["-v"]
+
+  composer:
+    build: .
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    volumes:
+      - .:/app
+    working_dir: /app
+    entrypoint: ["composer"]
+    command: ["install"]
+
+  test:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    entrypoint: ["vendor/bin/phpunit"]
+    command: ["--testsuite", "unit"]
+
+  lint:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    entrypoint: ["vendor/bin/phpcs"]
+    command: []
