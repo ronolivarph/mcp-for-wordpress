@@ -149,15 +149,44 @@ final class AuthorizeController {
 				$factory->createResponse()
 			);
 
+			// Extract the redirect Location and use wp_redirect() for reliability.
+			// The PSR-7 response is a 302 with Location: redirect_uri?code=XXX&state=YYY
+			$location = $psr_response->getHeaderLine( 'Location' );
+			if ( ! empty( $location ) ) {
+				// wp_redirect won't allow external hosts by default — use wp_safe_redirect
+				// with a filter to allow the OAuth callback URL.
+				add_filter( 'allowed_redirect_hosts', static function ( array $hosts ) use ( $location ): array {
+					$parsed = wp_parse_url( $location );
+					if ( ! empty( $parsed['host'] ) ) {
+						$hosts[] = $parsed['host'];
+					}
+					return $hosts;
+				} );
+
+				wp_safe_redirect( $location, $psr_response->getStatusCode() );
+				exit;
+			}
+
+			// Fallback: send the raw PSR-7 response if no Location header.
 			self::send_psr7_response( $psr_response );
 			exit;
 
 		} catch ( OAuthServerException $e ) {
-			$psr_response = $e->generateHttpResponse( $factory->createResponse() );
-			self::send_psr7_response( $psr_response );
-			exit;
+			// Show the OAuth error details so we can debug.
+			wp_die(
+				esc_html( $e->getMessage() ) . '<br><br>' .
+				'<strong>Error:</strong> ' . esc_html( $e->getErrorType() ) . '<br>' .
+				'<strong>Hint:</strong> ' . esc_html( $e->getHint() ?? 'none' ),
+				'OAuth Error',
+				[ 'response' => $e->getHttpStatusCode() ]
+			);
 		} catch ( \Exception $e ) {
-			wp_die( esc_html( $e->getMessage() ), 500 );
+			wp_die(
+				'<strong>Error:</strong> ' . esc_html( $e->getMessage() ) . '<br>' .
+				'<strong>File:</strong> ' . esc_html( $e->getFile() ) . ':' . $e->getLine(),
+				'Authorization Error',
+				[ 'response' => 500 ]
+			);
 		}
 	}
 
